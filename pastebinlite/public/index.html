@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pastebin Lite</title>
+  <style>
+    /* General Reset */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(to right, #667eea, #764ba2);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #fff;
+    }
+
+    .container {
+      background-color: rgba(255, 255, 255, 0.1);
+      padding: 30px 40px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+      width: 100%;
+      max-width: 500px;
+      backdrop-filter: blur(10px);
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 28px;
+      color: #fff;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      resize: vertical;
+      font-size: 16px;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border-radius: 8px;
+      border: none;
+      font-size: 16px;
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: 500;
+      font-size: 16px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 20px;
+      background-color: #ff6b6b;
+      color: #fff;
+      font-size: 18px;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #ff4757;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    #result {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 16px;
+      color: #ffeaa7;
+      word-break: break-word;
+    }
+
+    #result a {
+      color: #74b9ff;
+      text-decoration: underline;
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>Pastebin Lite</h2>
+
+    <textarea id="content" rows="6" placeholder="Type your text here..."></textarea>
+    
+    <label for="ttl">TTL (seconds, optional):</label>
+    <input id="ttl" type="number" min="1" placeholder="Leave empty for unlimited">
+
+    <label for="views">Max Views (optional):</label>
+    <input id="views" type="number" min="1" placeholder="Leave empty for unlimited">
+
+    <button onclick="createPaste()">Create Paste</button>
+
+    <p id="result"></p>
+  </div>
+
+  <script>
+    async function createPaste() {
+      const content = document.getElementById("content").value.trim();
+      const ttl = document.getElementById("ttl").value;
+      const views = document.getElementById("views").value;
+
+      if (!content) {
+        document.getElementById("result").innerText = "Please enter some text!";
+        return;
+      }
+
+      const body = { content };
+      if (ttl) body.ttl_seconds = Number(ttl);
+      if (views) body.max_views = Number(views);
+
+      try {
+        const res = await fetch("/api/pastes", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          document.getElementById("result").innerText =
+            "Error: " + (data.error || "Invalid input");
+          return;
+        }
+
+        document.getElementById("result").innerHTML =
+          `Paste created! <a href="${data.url}" target="_blank">${data.url}</a>`;
+      } catch (err) {
+        document.getElementById("result").innerText = "Server error!";
+      }
+    }
+  </script>
+
+</body>
+</html>
